@@ -1,0 +1,4 @@
+INZIDENZ WIDGET v2.9
+- Updater hinzugefügt
+- Rechtschreibfehler korrigiert
+- weitere Fehlerbehebungen
