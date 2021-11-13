@@ -1,4 +1,2 @@
 Inzidenz Widget v2.9
-  - Updater hinzugefügt
-  - Rechtschreibfehler korrigiert
-  - weitere Fehlerbehebungen
+  -einige kleine Fehlebehebungen
