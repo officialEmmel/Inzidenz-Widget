@@ -67,8 +67,9 @@ const DEBUG_WIDGET = true
 
 let version = 2.9
 
-let updateUrl = "https://google.com"
-let downloadUrl = "https://raw.githubusercontent.com/better-iServ/iServ-Client/main/updates/updateVersion.txt"
+let updateUrl = "https://raw.githubusercontent.com/officialEmmel/Inzidenz-Widget/main/update/version.txt"
+let downloadUrl = "https://raw.githubusercontent.com/officialEmmel/Inzidenz-Widget/main/update/latest.js"
+let featureUrl = "https://raw.githubusercontent.com/officialEmmel/Inzidenz-Widget/main/update/changes.txt"
 
 // 
 // await updateScript() // 
@@ -156,10 +157,9 @@ catch (e)
 
 //CHECK UPDATE
 
-  let upReq = new Request(updateUrl)
-  let upVer = await upReq.loadString()
-  let upVerFl = parseFloat(upVer)
-  upVerFl = 3.1
+let upReq = new Request(updateUrl)
+let upVer = await upReq.loadString()
+let upVerFl = parseFloat(upVer)
   if(upVerFl > version)
   {
       let fmUp = FileManager.iCloud()
@@ -840,7 +840,7 @@ function update(ver)
  t.minimumScaleFactor = 0.1
 t.centerAlignText()
 w.addSpacer(5)
-let des = w.addText("v" + ver + " | Zum Installieren tippen")
+let des = w.addText("Zum Installieren tippen")
 des.font = Font.systemFont(12)
 des.centerAlignText()
 des.minimumScaleFactor = 0.1
@@ -1169,16 +1169,17 @@ function getParam(p, s, def)
 
 async function updateScript()
 {
-  try
-  {
-    let upReq = new Request(updateUrl)
-    let upVer = await upReq.loadString()
-    let upVerFl = parseFloat(upVer)
-    if(upVerFl > version)
-    {
-      let noUp = new Alert()
-      noUp.title = "Update installieren"
-      noUp.message = "Es ist ein Update des Widgets verfügbar"
+  let upReq = new Request(updateUrl)
+  let txtVer = await upReq.loadString()
+  let ver = parseFloat(txtVer)
+  
+  let feaReq = new Request(featureUrl)
+  let features = await feaReq.loadString()
+ 
+  
+       let noUp = new Alert()
+      noUp.title = "Update verfügbar"
+      noUp.message = features
       
        noUp.addAction("Abbrechen")
        noUp.addAction("Installieren")
@@ -1187,26 +1188,12 @@ async function updateScript()
        let res = await noUp.presentAlert() 
        if(res == 1)
        {
-         await loadUpdate() 
+         await loadUpdate(ver) 
        }
-     
-    }
-    else
-    {
-      let noUp = new Alert()
-      noUp.title = "Widget auf dem neusten Stand"
-      noUp.message = "Es ist die neuste Version (" + version + ") des Widgets installiert"
-       noUp.addAction("Ok")
-       await noUp.presentAlert()
-    
-    }
-  }
-  catch (e) {log(e)}
-  
   
 }
 
-async function loadUpdate()
+async function loadUpdate(upVerFl)
 {
   let fileReq = new Request(downloadUrl)
   let file = await fileReq.loadString()
