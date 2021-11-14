@@ -58,14 +58,149 @@ let rounding = 1
 //(Das Datum wird dabei ausgeblendet)
 let showDays = true
 
+// AUTOREFRESH
+//dieses Feature bietet die Möglichkeit bestimmte Inzidenzen automatisch abzurufen, ohne ein widget aktiviert zu haben
+let autoParams = []
 
 
-const DEBUG_WIDGET = true
+// UPDATES
+searchForUpdates = true
 
+
+const DEBUG_WIDGET = false
+
+class ICON
+{
+  static iconDict = {
+    arrowUp: "arrow.up.circle",
+    arrowDown: "arrow.down.circle",
+    arrowHorizontal: "arrow.forward.circle",
+    arrowUpDown: "arrow.up.arrow.down.circle",
+    warning: "exclamationmark.triangle",
+    checkmark: "checkmark.circle",
+    wifiSlash: "wifi.slash",
+    update: "icloud.and.arrow.down",
+    folder: "folder",
+    externaldrive: "externaldrive.badge.xmark",
+    location: "location.slash",
+  }
+  static arrowUp() {
+    if(Device.systemVersion().split(".")[0] == "14")
+    {
+      return this.iconDict.arrowUp + ".fill"
+    }
+    else
+    {
+      return this.iconDict.arrowUp
+    }
+  }
+  static arrowDown() {
+    if(Device.systemVersion().split(".")[0] == "14")
+    {
+      return this.iconDict.arrowDown + ".fill"
+    }
+    else
+    {
+      return this.iconDict.arrowDown
+    }
+  }
+  static arrowHorizontal() {
+    if(Device.systemVersion().split(".")[0] == "14")
+    {
+      return this.iconDict.arrowHorizontal + ".fill"
+    }
+    else
+    {
+      return this.iconDict.arrowHorizontal
+    }
+  }
+  static arrowUpDown() {
+    if(Device.systemVersion().split(".")[0] == "14")
+    {
+      return this.iconDict.arrowUpDown + ".fill"
+    }
+    else
+    {
+      return this.iconDict.arrowUpDown
+    }
+  }
+  static warning() {
+    if(Device.systemVersion().split(".")[0] == "14")
+    {
+      return this.iconDict.warning + ".fill"
+    }
+    else
+    {
+      return this.iconDict.warning
+    }
+  }
+  static checkmark() {
+    if(Device.systemVersion().split(".")[0] == "14")
+    {
+      return this.iconDict.checkmark + ".fill"
+    }
+    else
+    {
+      return this.iconDict.checkmark
+    }
+  }
+  static wifiSlash() {
+    if(Device.systemVersion().split(".")[0] == "14")
+    {
+      return this.iconDict.wifiSlash + ".fill"
+    }
+    else
+    {
+      return this.iconDict.wifiSlash
+    }
+  }
+  static update() {
+    if(Device.systemVersion().split(".")[0] == "14")
+    {
+      return this.iconDict.update + ".fill"
+    }
+    else
+    {
+      return this.iconDict.update
+    }
+  }
+  static folder() {
+    if(Device.systemVersion().split(".")[0] == "14")
+    {
+      return this.iconDict.folder + ".fill"
+    }
+    else
+    {
+      return this.iconDict.folder
+    }
+  }
+  static externaldrive() {
+    if(Device.systemVersion().split(".")[0] == "14")
+    {
+      return this.iconDict.externaldrive + ".fill"
+    }
+    else
+    {
+      return this.iconDict.externaldrive
+    }
+  }
+  static location() {
+    if(Device.systemVersion().split(".")[0] == "14")
+    {
+      return this.iconDict.location + ".fill"
+    }
+    else
+    {
+      return this.iconDict.location
+    }
+  }
+}
+
+// #######################
 //SCRIPT BEGINNT AB HIER//
 //Vorsicht beim bearbeiten
 
-let version = 2.9
+let version = 3.0
 
 let updateUrl = "https://raw.githubusercontent.com/officialEmmel/Inzidenz-Widget/main/update/version.txt"
 let downloadUrl = "https://raw.githubusercontent.com/officialEmmel/Inzidenz-Widget/main/update/latest.js"
@@ -154,42 +289,43 @@ catch (e)
     }
 }
 
-
 //CHECK UPDATE
-
-let upReq = new Request(updateUrl)
-let upVer = await upReq.loadString()
-let upVerFl = parseFloat(upVer)
-  if(upVerFl > version)
-  {
-      let fmUp = FileManager.iCloud()
-  let dirPathUp = fmUp.documentsDirectory()
-  if (!fmUp.fileExists(fmUp.joinPath(dirPathUp, "Inzidenz Widget v" + upVerFl + ".js")))   
-  {
-  
-    if(config.runsInWidget)
+if(searchForUpdates)
+{
+  let upReq = new Request(updateUrl)
+  let upVer = await upReq.loadString()
+  let upVerFl = parseFloat(upVer)
+    if(upVerFl > version)
     {
-       Script.setWidget(update(upVerFl))
-      return
+        let fmUp = FileManager.iCloud()
+    let dirPathUp = fmUp.documentsDirectory()
+    if (!fmUp.fileExists(fmUp.joinPath(dirPathUp, "Inzidenz Widget v" + upVerFl + ".js")))   
+    {
+    
+      if(config.runsInWidget)
+      {
+        Script.setWidget(update(upVerFl))
+        return
+      }
+      else
+      {
+        update(upVerFl).presentSmall()
+        return
+      }
     }
     else
     {
-       update(upVerFl).presentSmall()
-       return
+      if(config.runsInWidget)
+      {
+        Script.setWidget(newer(upVerFl))
+        return
+      }
+      else
+      {
+        newer(upVerFl).presentSmall()
+        return
+      }  
     }
-  }
-  else
-  {
-    if(config.runsInWidget)
-    {
-       Script.setWidget(newer(upVerFl))
-      return
-    }
-    else
-    {
-       newer(upVerFl).presentSmall()
-       return
-    }  
   }
 }
 
@@ -349,7 +485,39 @@ async function createWidget()
   if(ort == "errD")
     return dataFailed()
     
+  
+  await autoRefresh()
+    
   return w
+}
+
+async function autoRefresh()
+{
+  for(let i = 0; i<autoParams.length; i++) 
+  {
+    let p = autoParams[i]
+    if(apiParam == "geo" || apiParam == "de")
+    {
+      let inzi = await getInzidenz()
+      await setTrend(inzi)
+    }  
+    else
+    {
+      try
+      {
+         let r = await new Request(nameUrl).loadString()
+         let j = await JSON.parse(r)
+         let d = j.features[0].attributes.cases7_per_100k_txt
+         let inzi = await getInzidenz()
+         await setTrend(inzi)
+       }
+       catch (e)
+       {
+
+       }
+     }
+    
+  }  
 }
 
 async function createUI()
@@ -509,7 +677,7 @@ function getTrend(inz)
   
   if(inz > last)
   {
-      s = SFSymbol.named("arrow.up.circle")
+      s = SFSymbol.named(ICON.arrowUp())
       t = dif
       c = Color.red() 
 //       if(dif <= 2.5)
@@ -520,7 +688,7 @@ function getTrend(inz)
   }
   else if(inz < last)
   {
-      s = SFSymbol.named("arrow.down.circle")
+      s = SFSymbol.named(ICON.arrowDown())
       t = dif
       c = Color.green() 
 //       if(dif >= -2.5)
@@ -532,7 +700,7 @@ function getTrend(inz)
   else if(inz == last)
   {
     t = "keine Änderung"  
-    s = SFSymbol.named("arrow.forward.circle")
+    s = SFSymbol.named(ICON.arrowHorizontal)
     c = fontColor
   }
  
@@ -569,7 +737,7 @@ function getTrend(inz)
    if(Math.abs(dif) < 5)
   {
     showDate = false
-    s = SFSymbol.named("arrow.up.arrow.down.circle")
+    s = SFSymbol.named(ICON.arrowUpDown())
     t = t + " | wenig Änderung"
   }
   
@@ -579,12 +747,12 @@ function getTrend(inz)
     showDate = false
     if(dif > 0)
     {
-       s = SFSymbol.named("exclamationmark.triangle")
+       s = SFSymbol.named(ICON.warning())
        t = t + " | starker Anstieg"
     }
     else
     {
-      s = SFSymbol.named("checkmark.circle")
+      s = SFSymbol.named(ICON.checkmark())
        t = t + " | stark gesunken"
     }
   }
@@ -593,14 +761,14 @@ function getTrend(inz)
   if(Math.max(...all) == inz)
   {
     showDate = false
-    s = SFSymbol.named("exclamationmark.triangle")
+    s = SFSymbol.named(ICON.warning())
     t = t + " | höchster Wert"
  }
   
   if(Math.min(...all) == inz)
   {
     showDate = false
-    s = SFSymbol.named("checkmark.circle")
+    s = SFSymbol.named(ICON.checkmark())
     t = t + " | niedrigster Wert"
  }
   
@@ -809,7 +977,7 @@ function offline()
 {
   let w = new ListWidget()
   w.backgroundColor = bg
-  let icon = SFSymbol.named("wifi.slash")
+  let icon = SFSymbol.named(ICON.wifiSlash())
  icon.applyFont(Font.systemFont(50))
  let img = w.addImage(icon.image)
  img.imageSize = new Size(48, 48) 
@@ -828,7 +996,7 @@ function update(ver)
   let w = new ListWidget()
   w.backgroundColor = bg
   w.url = URLScheme.forRunningScript() + "?param=update"
-  let icon = SFSymbol.named("icloud.and.arrow.down")
+  let icon = SFSymbol.named(ICON.update())
  icon.applyFont(Font.systemFont(50))
  let img = w.addImage(icon.image)
  img.imageSize = new Size(48, 48) 
@@ -854,7 +1022,7 @@ function newer(ver)
   let w = new ListWidget()
   w.backgroundColor = bg
   w.url = URLScheme.forRunningScript() + "?param=change"
-  let icon = SFSymbol.named("folder")
+  let icon = SFSymbol.named(ICON.folder())
  icon.applyFont(Font.systemFont(50))
  let img = w.addImage(icon.image)
  img.imageSize = new Size(48, 48) 
@@ -875,7 +1043,7 @@ function dataFailed()
 {
   let w = new ListWidget()
   w.backgroundColor = bg
-  let icon = SFSymbol.named("externaldrive.badge.xmark")
+  let icon = SFSymbol.named(ICON.externaldrive())
  icon.applyFont(Font.systemFont(50))
  let img = w.addImage(icon.image)
  img.imageSize = new Size(48, 48) 
@@ -893,7 +1061,7 @@ function locationFailed()
 {
   let w = new ListWidget()
   w.backgroundColor = bg
-  let icon = SFSymbol.named("location.slash")
+  let icon = SFSymbol.named(ICON.location())
  icon.applyFont(Font.systemFont(50))
  let img = w.addImage(icon.image)
  img.imageSize = new Size(48, 48) 
@@ -913,7 +1081,7 @@ function notfound()
 {
   let w = new ListWidget()
   w.backgroundColor = bg
-  let icon = SFSymbol.named("exclamationmark.triangle")
+  let icon = SFSymbol.named(ICON.warning())
  icon.applyFont(Font.systemFont(50))
  let img = w.addImage(icon.image)
  img.imageSize = new Size(48, 48) 
@@ -987,40 +1155,7 @@ function diagram(w)
       max = 30
       rounding = 3
   }
-  }
-
-//   for(let i = 0; i < max; i++)
-//   {
-//     let d = new Date(dates[i])
-  //log("j" + d.getDate())
-  //log(lowDate.getDate())
-//     
-//     let days = parseInt(d.getDate())
-//     let month = parseInt(d.getMonth())
-//     
-//     if(dates[i] != undefined && d.getDate() != lowDate.getDate())
-//     {
-//       if(d.getDate() == 01 && d.getMonth() != lowDate.getMonth())
-//      {
-//         data[i] = data[i]     
-//      }
-//      else
-//      {       
-//         let dif = d.getDate() - lowDate.getDate()
-//        
-//           for(let l = 0; l < dif; l++)
-//           {
-//             data.splice(i-1, 0, defaultWert)
-//           }
-//           
-//          lowDate.setDate(lowDate.getDate() + dif)
-//      }
-//       
-//    }    
-//    lowDate.setDate(lowDate.getDate() + 1)
-//     
-//   }
-  
+  }  
   
   let blockW = canvasSize.width/(max*2)
   
@@ -1095,56 +1230,6 @@ function diagram(w)
   return canvas.getImage()
 }
 
-// function getParam(p, s)
-// {
-//   let ort = apiParam
-//   let maxdays = maxShow
-//   let round = rounding
-//   
-//   try
-//   {
-//     JSON.parse(p)
-//   }
-//   catch (e) {}
-//   
-//   try
-//   {
-//     let json = JSON.parse(p)
-//     ort = json.ort
-//   }
-//   catch (e) {}
-//   
-//   try
-//   {
-//     let json = JSON.parse(p)
-//     maxdays = json.maxdays
-//   }
-//   catch (e) {}
-//   
-//   try
-//   {
-//     let json = JSON.parse(p)
-//     round = json.rounding
-//   }
-//   catch (e) {}
-//   
-//   if(s == "ort")
-//   {
-//     return ort
-//   }
-//   else if(s == "maxdays")
-//   {
-//     return maxdays
-//   }
-//   else if(s == "rounding")
-//   {
-//     return round
-//   }
-//   
-//   
-// 
-// }
-
 function getParam(p, s, def)
 {
   
@@ -1201,7 +1286,7 @@ async function loadUpdate(upVerFl)
   {
     let noUp = new Alert()
     noUp.title = "Inzidenz Widget v" + upVerFl + " wurde erfolgreich installiert"
-    noUp.message = "Jetzt musst du noch im Widget das Script ändern: Widget gedrückt halten > Scriptable bestbeiten' > 'Script' > 'Inzidenz Widget v" + upVerFl + "'"
+    noUp.message = "Jetzt musst du noch im Widget das Script ändern: Widget gedrückt halten > Scriptable bearbeiten' > 'Script' > 'Inzidenz Widget v" + upVerFl + "'"
      noUp.addAction("Ok")
      await noUp.presentAlert()
   
@@ -1210,7 +1295,7 @@ async function loadUpdate(upVerFl)
   {
     let noUp = new Alert()
     noUp.title = "Inzidenz Widget v" + upVerFl + " ist bereits installiert"
-    noUp.message = "Eventuell musst du noch im Widget das Script ändern: Widget gedrückt halten > Scriptable bestbeiten' > 'Script' > 'Inzidenz Widget v" + upVerFl + "'"
+    noUp.message = "Eventuell musst du noch im Widget das Script ändern: Widget gedrückt halten > Scriptable bearbeiten' > 'Script' > 'Inzidenz Widget v" + upVerFl + "'"
      noUp.addAction("Ok")
      await noUp.presentAlert()
     
