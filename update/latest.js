@@ -201,7 +201,7 @@ class ICON
 //SCRIPT BEGINNT AB HIER//
 //Vorsicht beim bearbeiten
 
-let version = 3.0
+let version = 3.1
 
 let updateUrl = "https://raw.githubusercontent.com/officialEmmel/Inzidenz-Widget/main/update/version.txt"
 let downloadUrl = "https://raw.githubusercontent.com/officialEmmel/Inzidenz-Widget/main/update/latest.js"
