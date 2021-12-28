@@ -1,1 +1,4 @@
-Update auf Inzidenz Widget v3.1
+Update auf Inzidenz Widget v3.2
+- ,0 Fehler behoben
+- Standort Fehler behoben wenn nicht in Deutschland 
+- unscharfes Icon bei neuem Ort entfernt 
