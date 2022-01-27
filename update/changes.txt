@@ -1,4 +1,4 @@
-Update auf Inzidenz Widget v3.2
-- ,0 Fehler behoben
-- Standort Fehler behoben wenn nicht in Deutschland 
-- unscharfes Icon bei neuem Ort entfernt 
+- Diagramm zeigt jetzt Aufzeichnungslücken
+- neue Farben hinzugefügt 
+- darkmode Fehler bei neuem Ort behoben
+- Widget für Intidenz über 1000 optimiert
